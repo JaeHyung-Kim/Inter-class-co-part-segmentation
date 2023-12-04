@@ -27,6 +27,7 @@ from models.model_factory import model_generator
 from tps.rand_tps import RandTPS
 from utils.utils import adjusted_rand_score_overflow
 from visualize import Visualizer
+from itertools import combinations
 
 IMG_MEAN = np.array((104.00698793, 116.66876762,
                      122.67891434), dtype=np.float32)
@@ -261,6 +262,43 @@ class Trainer(nn.Module):
             'model_state_dict': self.model.state_dict(),
             'optimizer_state_dict': self.optimizer_seg.state_dict(),
             }, path)
+    
+    def log_consistency(self, testloader, i_iter):
+        self.model.eval()
+        gts = []
+        preds = []
+        for batch in tqdm(testloader):
+            images_cpu = batch['img']
+            gt = batch['seg'] # only use value in 1~16
+            images = images_cpu.cuda(self.args.gpu)
+            _, _, pred_low, _ = self.model(images)
+            pred = self.interp(pred_low)
+
+            pred_argmax = pred.argmax(dim=1)
+            gts.append(gt.type(torch.int8))
+            preds.append(pred_argmax.cpu().type(torch.int8))
+
+        gts = torch.cat(gts, 0).flatten()
+        preds = torch.cat(preds, 0).flatten()
+
+        B = gts.shape[0]
+
+        seg_count = torch.zeros((B, 16, 4), dtype=torch.int)
+
+        for i in range(1, 17):
+            mask_copart = gts==i
+            for j in [1, 2, 3, 4]:
+                seg_count[:, i-1, j-1] = torch.sum(preds[mask_copart] == j, dim=1)
+        
+        highest_iou_copart = torch.argmax(seg_count, dim=-1) # (B, 16)
+
+        copart_pairs = list(combinations(highest_iou_copart, 2))
+
+        ari = adjusted_rand_score_overflow(copart_pairs[0], copart_pairs[1])
+        nmi = normalized_mutual_info_score(copart_pairs[0], copart_pairs[1])
+        print(f"co-part ARI: {ari * 100: .2f}, co-part NMI: {nmi * 100: .2f}")
+        wandb.log({'data/co-part_nmi': nmi * 100}, step=i_iter)
+        wandb.log({'data/co-part_ari': ari * 100}, step=i_iter)
 
     def log_ari(self, testloader, i_iter):
         self.model.eval()
