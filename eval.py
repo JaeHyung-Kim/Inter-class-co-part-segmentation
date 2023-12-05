@@ -112,16 +112,15 @@ def main(cfg: DictConfig):
     from trainer_ours import Trainer
     trainer = Trainer(args)
 
-    for eval_iter in range(10):
+    for eval_iter in range(1):
 
         _, test_batch = testloader_iter.__next__()
     
         # can be used for tracking purposes but for final numbers please use the script in the evaluation folder
         # trainer.log_nmi(train_dataset, test_dataset, i_iter)
         trainer.log_consistency(testloader, eval_iter)
+        trainer.log_ari(testloader, eval_iter)
 
-        if test_batch['img'].size(0) == args.batch_size:
-                trainer.visualize('test', eval_iter, test_batch)
 
 
             

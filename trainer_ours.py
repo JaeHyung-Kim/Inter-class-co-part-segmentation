@@ -265,8 +265,8 @@ class Trainer(nn.Module):
     
     def log_consistency(self, testloader, i_iter):
         self.model.eval()
-        gts = []
-        preds = []
+        gts = None
+        preds = None
         for batch in tqdm(testloader):
             images_cpu = batch['img']
             gt = batch['seg'] # only use value in 1~16
@@ -274,28 +274,46 @@ class Trainer(nn.Module):
             _, _, pred_low, _ = self.model(images)
             pred = self.interp(pred_low)
 
-            pred_argmax = pred.argmax(dim=1)
-            gts.append(gt.type(torch.int8))
-            preds.append(pred_argmax.cpu().type(torch.int8))
+            pred_argmax = pred.argmax(dim=1) 
+            B = pred_argmax.shape[0]
+            pred = pred_argmax.cpu().type(torch.int8).reshape(B, -1) # pred (3, 256x256)
+            gt = torch.squeeze(gt, 1).type(torch.int8).reshape(B, -1) # gt (3, 256x256)
+            if gts is None:
+                gts = gt
+                preds = pred
+            else:
+                gts = torch.cat((gts, gt), dim=0)
+                preds = torch.cat((preds, pred), dim=0)
 
-        gts = torch.cat(gts, 0).flatten()
-        preds = torch.cat(preds, 0).flatten()
+        NS = gts.shape[0]
 
-        B = gts.shape[0]
-
-        seg_count = torch.zeros((B, 16, 4), dtype=torch.int)
-
-        for i in range(1, 17):
-            mask_copart = gts==i
-            for j in [1, 2, 3, 4]:
-                seg_count[:, i-1, j-1] = torch.sum(preds[mask_copart] == j, dim=1)
+        seg_count = torch.zeros((NS, 16, 4), dtype=torch.int)
+        for sample_idx in range(NS):
+            for i in range(1, 17):
+                mask_copart = torch.where(gts[sample_idx]==i)[0]
+                for j in range(4):
+                    seg_count[sample_idx, i-1, j-1] = torch.sum(preds[sample_idx, mask_copart] == j)
         
         highest_iou_copart = torch.argmax(seg_count, dim=-1) # (B, 16)
 
         copart_pairs = list(combinations(highest_iou_copart, 2))
+        ari_list = []
+        nmi_list = []
+        pair_indices = np.arange(len(copart_pairs))
+        random.shuffle(pair_indices)
+        for pair_idx in pair_indices[:10000]:
+            pair = copart_pairs[pair_idx]
+            pair_ari = adjusted_rand_score_overflow(pair[0], pair[1])
+            pair_nmi = normalized_mutual_info_score(pair[0], pair[1])
+            ari_list.append(pair_ari)
+            nmi_list.append(pair_nmi)
+        
+        ari_list = np.array(ari_list)
+        nmi_list = np.array(nmi_list)
+        
+        ari = np.average(ari_list)
+        nmi = np.average(nmi_list)
 
-        ari = adjusted_rand_score_overflow(copart_pairs[0], copart_pairs[1])
-        nmi = normalized_mutual_info_score(copart_pairs[0], copart_pairs[1])
         print(f"co-part ARI: {ari * 100: .2f}, co-part NMI: {nmi * 100: .2f}")
         wandb.log({'data/co-part_nmi': nmi * 100}, step=i_iter)
         wandb.log({'data/co-part_ari': ari * 100}, step=i_iter)
