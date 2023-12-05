@@ -65,3 +65,23 @@ def model_generator(args, add_bg_mask=True):
         model.load_state_dict(new_params)
 
     return model, optimizer_state_dict
+
+
+def teacher_generator(args, add_bg_mask=True):
+    add_bg_mask = int(add_bg_mask)
+    restore_teacher_from = args.restore_teacher_from
+    # create network
+    model = Res101_Deeplab_2branch(num_classes=args.num_parts+add_bg_mask)
+    if restore_teacher_from is None:
+        restore_teacher_from = PRETRAINED_MODEL['resnet-101-caffe']
+
+    # load pretrained parameters
+    print('load model from {}'.format(restore_teacher_from))
+    saved_state_dict = torch.load(restore_teacher_from)
+    if 'model_state_dict' in saved_state_dict:
+        # Trainer.save_model saves dict
+        saved_state_dict = saved_state_dict['model_state_dict']
+
+    model.load_state_dict(saved_state_dict)
+
+    return model

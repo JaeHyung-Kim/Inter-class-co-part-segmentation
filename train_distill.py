@@ -117,8 +117,8 @@ def main(cfg: DictConfig):
     testloader_iter = enumerate(testloader)
 
     # Initialize trainer
-    from trainer_ours import Trainer
-    trainer = Trainer(args)
+    from trainer_distill import TrainerDistill
+    trainer = TrainerDistill(args)
 
     for i_iter in range(args.num_steps):
 

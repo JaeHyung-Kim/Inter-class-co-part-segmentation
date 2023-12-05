@@ -3,7 +3,7 @@ batch_size: 6
 celeba_th: 0.3
 center_crop: false
 clip_gradients: 5
-dataset: CUB
+dataset: ""
 dataset_name: ~
 dataset_root: "data/"
 detach_k: false
@@ -24,10 +24,12 @@ lambda_rgb: 3e1
 lambda_variance: 0
 lambda_sc: 5
 # lambda_sc: 50
+lambda_distill: 1e4
 layer_len: -1
 learning_rate: 1e-05
 learning_rate_w: 0.01
-model: DeepLab101_2branch
+teacher_model: DeepLab101_2branch
+model: DeepLab50_2branch
 model_type: new
 momentum: 0.9
 no_sal_masking: false
@@ -38,7 +40,7 @@ num_steps: 100000
 # num_steps: 200000
 num_workers: 8
 power: 0.9
-pascal_class: ["dog", "sheep", "cat"]
+pascal_class: ["dog"]
 random_mirror: false
 random_scale: false
 random_scale_high: 2.0
@@ -51,6 +53,7 @@ ref_weight1: 0.33
 ref_weight2: 1.0
 ref_norm: false
 restore_from: ~
+restore_teacher_from: "outputs/entire-run4-sc50/files/model_100000.pth"
 save_pred_every: 5000
 self_ref_coord: false
 single_class: ~

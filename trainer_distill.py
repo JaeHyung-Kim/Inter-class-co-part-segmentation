@@ -23,7 +23,7 @@ from tqdm import tqdm
 import loss
 from datasets.lit_dataset import LitDataset
 from models.feature_extraction import FeatureExtraction
-from models.model_factory import model_generator
+from models.model_factory import model_generator, teacher_generator
 from tps.rand_tps import RandTPS
 from utils.utils import adjusted_rand_score_overflow
 from visualize import Visualizer
@@ -42,7 +42,7 @@ def adjust_learning_rate(optimizer, i_iter, args):
         optimizer.param_groups[1]['lr'] = lr * 10
 
 
-class Trainer(nn.Module):
+class TrainerDistill(nn.Module):
 
     def __init__(self, args):
         super().__init__()
@@ -61,6 +61,12 @@ class Trainer(nn.Module):
         model.train()
         model.cuda(args.gpu)
         self.model = model
+
+        # Create teacher network
+        teacher = teacher_generator(args, add_bg_mask=False)
+        teacher.eval()
+        teacher.cuda(args.gpu)
+        self.teacher = teacher
 
         # Initialize spatial/color transform for Equuivariance loss.
         self.tps = RandTPS(args.input_size, args.input_size,
@@ -108,13 +114,16 @@ class Trainer(nn.Module):
         self.register_buffer('pos_y', torch.arange(self.args.input_size).view(1, 1, -1, 1).repeat(1, 1, 1, self.args.input_size).cuda(args.gpu))
         self.pos_y = self.pos_y.cuda(args.gpu)
 
+
     def step(self, batch, current_step):
         loss_eqv_value = 0
         loss_sc_value = 0
         loss_rgb_value = 0
         loss_contrastive_value = 0
+        loss_distill_value = 0
 
         self.model.train()
+        self.teacher.eval()
 
         self.optimizer_seg.zero_grad()
         adjust_learning_rate(self.optimizer_seg, current_step, self.args)
@@ -124,6 +133,12 @@ class Trainer(nn.Module):
         images_vgg = batch['img_vgg'].cuda(self.args.gpu)
         images_rec = batch['img_rec'].cuda(self.args.gpu)
 
+        # Teacher prediction
+        with torch.no_grad():
+            _, _, teacher_pred_low, _ = self.teacher(images)
+            teacher_pred = self.interp(teacher_pred_low)
+
+        # Child prediction
         _, _, pred_low, _ = self.model(images)
         pred = self.interp(pred_low)
 
@@ -169,11 +184,21 @@ class Trainer(nn.Module):
         loss_eqv = loss_eqv.mean()
         loss_eqv_value += self.args.lambda_eqv * loss_eqv.data.cpu().numpy()
 
+
+        # Distillation loss (pixel-wise Cross-entropy?)
+        teacher_pred_softmax = torch.nn.functional.softmax(teacher_pred, dim=1)
+        loss_distill = torch.nn.functional.cross_entropy(pred, teacher_pred_softmax)
+        loss_distill_value += self.args.lambda_distill * loss_distill.data.cpu().numpy()
+        
+        # raise NotImplementedError("Stop")
+
+
         # sum all loss terms
         total_loss = self.args.lambda_eqv * loss_eqv \
                      + self.args.lambda_sc * loss_sc \
                      + self.args.lambda_rgb * loss_rgb \
-                     + self.args.lambda_contrastive * loss_contrastive
+                     + self.args.lambda_contrastive * loss_contrastive \
+                     + self.args.lambda_distill * loss_distill
 
         total_loss.backward()
 
@@ -184,19 +209,21 @@ class Trainer(nn.Module):
             # visualize loss curves
             self.viz.vis_losses(current_step,
                                 [loss_eqv_value,
-                                 loss_sc_value, loss_rgb_value, loss_contrastive_value],
-                                ['loss_eqv', 'loss_sc', 'loss_rgb', 'loss_contrastive'])
+                                 loss_sc_value, loss_rgb_value, loss_contrastive_value, loss_distill_value],
+                                ['loss_eqv', 'loss_sc', 'loss_rgb', 'loss_contrastive', 'loss_distill'])
             print('exp = {}'.format(osp.join(self.args.snapshot_dir, wandb.run.name)))
             print(('iter = {:8d}/{:8d}, ' +
                    'loss_eqv = {:.3f}, ' +
                    'loss_sc = {:.3f}, ' +
                    'loss_rgb = {:.3f}, ' +
-                   'loss_contrastive = {:.3f}')
+                   'loss_contrastive = {:.3f}, ' +
+                   'loss_distill = {:.3f}')
                   .format(current_step, self.args.num_steps,
                           loss_eqv_value,
                           loss_sc_value,
                           loss_rgb_value,
-                          loss_contrastive_value))
+                          loss_contrastive_value,
+                          loss_distill_value))
 
     def visualize(self, setting, current_step, batch):
 
