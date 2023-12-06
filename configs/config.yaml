@@ -3,7 +3,7 @@ batch_size: 6
 celeba_th: 0.3
 center_crop: false
 clip_gradients: 5
-dataset: ""
+dataset: PP
 dataset_name: ~
 dataset_root: "data/"
 detach_k: false
@@ -52,8 +52,8 @@ ref_layer2: relu5_4
 ref_weight1: 0.33
 ref_weight2: 1.0
 ref_norm: false
-restore_from: ~
 restore_teacher_from: "outputs/entire-run4-sc50/files/model_100000.pth"
+restore_from: "checkpoints/model_100000.pth"
 save_pred_every: 5000
 self_ref_coord: false
 single_class: ~

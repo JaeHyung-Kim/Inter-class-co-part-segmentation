@@ -39,12 +39,10 @@ padding_frac = 0.05
 jitter_frac = 0.05
 
 dict_part = {'tvmonitor': ['background', 'screen'],
-             'cat': ['background', 'head', 'lbleg', 'lbpa', 'lear', 'leye', 'lfleg', 'lfpa', 'neck', 'nose', 'rbleg', 'rbpa', 'rear', 'reye', 'rfleg', 'rfpa', 'tail', 'torso'],
              'person': ['background', 'hair', 'head', 'lear', 'lebrow', 'leye', 'lfoot', 'lhand', 'llarm', 'llleg', 'luarm', 'luleg', 'mouth', 'neck', 'nose', 'rear', 'rebrow', 'reye', 'rfoot', 'rhand', 'rlarm', 'rlleg', 'ruarm', 'ruleg', 'torso'],
              'motorbike': ['background', 'bwheel', 'fwheel', 'handlebar', 'headlight', 'saddle'],
              'car': ['background', 'backside', 'bliplate', 'door', 'fliplate', 'frontside', 'headlight', 'leftmirror', 'leftside', 'rightmirror', 'rightside', 'roofside', 'wheel', 'window'],
              'aeroplane': ['background', 'body', 'engine', 'lwing', 'rwing', 'stern', 'tail', 'wheel'],
-             'dog': ['background', 'head', 'lbleg', 'lbpa', 'lear', 'leye', 'lfleg', 'lfpa', 'muzzle', 'neck', 'nose', 'rbleg', 'rbpa', 'rear', 'reye', 'rfleg', 'rfpa', 'tail', 'torso'],
              'bus': ['background', 'backside', 'bliplate', 'door', 'fliplate', 'frontside', 'headlight', 'leftmirror', 'leftside', 'rightmirror', 'rightside', 'roofside', 'wheel', 'window'],
              'train': ['background', 'cbackside', 'cfrontside', 'cleftside', 'coach', 'crightside', 'croofside', 'hbackside', 'head', 'headlight', 'hfrontside', 'hleftside', 'hrightside', 'hroofside'],
              'bird': ['background', 'beak', 'head', 'leye', 'lfoot', 'lleg', 'lwing', 'neck', 'reye', 'rfoot', 'rleg', 'rwing', 'tail', 'torso'],
@@ -53,7 +51,9 @@ dict_part = {'tvmonitor': ['background', 'screen'],
              'cow': ['background', 'head', 'lblleg', 'lbuleg', 'lear', 'leye', 'lflleg', 'lfuleg', 'lhorn', 'muzzle', 'neck', 'rblleg', 'rbuleg', 'rear', 'reye', 'rflleg', 'rfuleg', 'rhorn', 'tail', 'torso'],
              'bicycle': ['background', 'bwheel', 'chainwheel', 'fwheel', 'handlebar', 'headlight', 'saddle'],
              'bottle': ['background', 'body', 'cap'],
-             'sheep': ['background', 'head', 'lblleg', 'lbuleg', 'lear', 'leye', 'lflleg', 'lfuleg', 'lhorn', 'muzzle', 'neck', 'rblleg', 'rbuleg', 'rear', 'reye', 'rflleg', 'rfuleg', 'rhorn', 'tail', 'torso']}
+             'cat':   ['background', 'head', 'lbleg',  'lbpa',   'lear', 'leye', 'lfleg',  'lfpa',   'neck', 'rbleg',  'rbpa',   'rear', 'reye', 'rfleg',  'rfpa',   'tail', 'torso', 'nose'],
+             'dog':   ['background', 'head', 'lbleg',  'lbpa',   'lear', 'leye', 'lfleg',  'lfpa',   'neck', 'rbleg',  'rbpa',   'rear', 'reye', 'rfleg',  'rfpa',   'tail', 'torso', 'muzzle', 'nose'],
+             'sheep': ['background', 'head', 'lblleg', 'lbuleg', 'lear', 'leye', 'lflleg', 'lfuleg', 'neck', 'rblleg', 'rbuleg', 'rear', 'reye', 'rflleg', 'rfuleg', 'tail', 'torso', 'muzzle', 'lhorn', 'rhorn',]}
 
 
 # https://github.com/micco00x/py-pascalpart

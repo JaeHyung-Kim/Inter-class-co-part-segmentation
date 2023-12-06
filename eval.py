@@ -96,16 +96,6 @@ def main(cfg: DictConfig):
         print(f'Invalid dataset {args.dataset}')
         sys.exit()
 
-    trainloader = DataLoader(
-        LitDataset(train_dataset, args.use_lab),
-        batch_size=args.batch_size,
-        shuffle=True,
-        num_workers=args.num_workers,
-        worker_init_fn=seed_worker,
-        drop_last=True)
-
-    trainloader_iter = enumerate(trainloader)
-
     testloader = DataLoader(
         LitDataset(test_dataset),
         batch_size=args_test.batch_size,
@@ -114,46 +104,26 @@ def main(cfg: DictConfig):
         worker_init_fn=seed_worker,
         drop_last=False)
 
+
     testloader_iter = enumerate(testloader)
 
     # Initialize trainer
+    # Put ckpt_path 'checkpoints/model_100000.pth' in args.restore_from
     from trainer_ours import Trainer
     trainer = Trainer(args)
 
-    for i_iter in range(args.num_steps):
+    for eval_iter in range(1):
 
-        try:
-            _, batch = trainloader_iter.__next__()
-        except:
-            trainloader_iter = enumerate(trainloader)
-            _, batch = trainloader_iter.__next__()
-
-        trainer.step(batch, i_iter)
-
-        if i_iter % args.vis_interval == 0 or i_iter == 100:
-            trainer.visualize('train', i_iter, batch)
-            try:
-                _, test_batch = testloader_iter.__next__()
-            except:
-                testloader_iter = enumerate(testloader)
-                _, test_batch = testloader_iter.__next__()
-
-            if test_batch['img'].size(0) == args.batch_size:
-                trainer.visualize('test', i_iter, test_batch)
-
+        _, test_batch = testloader_iter.__next__()
+    
         # can be used for tracking purposes but for final numbers please use the script in the evaluation folder
-        # if i_iter % 500 == 0 and args.dataset == 'CUB':
-        #     trainer.log_nmi(train_dataset, test_dataset, i_iter)
-        # if (i_iter % 5000 == 0 or i_iter == 1000) and i_iter > 0 and args.dataset in ['PP', 'DF']:
-        #     trainer.log_ari(testloader, i_iter)
+        # trainer.log_nmi(train_dataset, test_dataset, i_iter)
+        trainer.log_consistency(testloader, eval_iter)
+        trainer.log_ari(testloader, eval_iter)
 
-        if i_iter >= args.num_steps - 1:
-            print('save model ...')
-            trainer.save_model(osp.join(wandb.run.dir.replace('/wandb/', '/outputs/'), 'model_' + str(args.num_steps) + '.pth'), i_iter)
-            break
-        if i_iter % args.save_pred_every == 0:
-            print('taking snapshot ...')
-            trainer.save_model(osp.join(wandb.run.dir.replace('/wandb/', '/outputs/'), 'model_' + str(i_iter) + '.pth'), i_iter)
+
+
+            
 
 
 if __name__ == '__main__':
