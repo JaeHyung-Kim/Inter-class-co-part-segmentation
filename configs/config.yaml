@@ -55,6 +55,7 @@ ref_norm: false
 # restore_from: "checkpoints/model_100000.pth"
 restore_from: ~
 restore_teacher_from: "outputs/entire-run4-sc50/files/model_100000.pth"
+use_kl_distill: false
 save_pred_every: 5000
 self_ref_coord: false
 single_class: ~

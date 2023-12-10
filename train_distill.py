@@ -32,22 +32,42 @@ import resource
 rlimit = resource.getrlimit(resource.RLIMIT_NOFILE)
 resource.setrlimit(resource.RLIMIT_NOFILE, (4096, rlimit[1]))
 
+
+
+try:
+    import vessl
+    import shutil
+    vessl_on = True
+    vessl.init()
+    def compress_folder(src_folder, archive_name, archive_type='zip'):
+        """
+        Compress a folder.
+
+        :param src_folder: The folder to compress
+        :param archive_name: The name of the archive file (without the extension)
+        :param archive_type: The type of archive ('zip', 'tar', 'gztar', 'bztar', or 'xztar')
+        :return: The name of the archive file
+        """
+        return shutil.make_archive(archive_name, format=archive_type, root_dir=src_folder)
+except:
+    vessl_on = False
+
+
+
+
 @hydra.main(config_path="configs", config_name="config.yaml")
 def main(cfg: DictConfig):
+
     print(os.getcwd())
     cfg = dict(cfg)
     if cfg['dataset_name'] is not None:
         cfg['dataset'] = cfg['dataset_name']
-    wandb.init(project='unsup-parts')
+    wandb.init(
+        project='unsup-parts',
+        name=cfg["exp_name"])
     wandb.config.update(cfg)
     args = wandb.config
     cudnn.enabled = True
-
-    if args.exp_name is not None:
-        api = wandb.Api()
-        run = api.run(path=f'wandb_userid/unsup-parts/{wandb.run.id}')
-        run.name = f'{args.exp_name}-{run.name}'
-        run.save()
 
     print("---------------------------------------")
     print(f"Arguments received: ")
@@ -154,6 +174,24 @@ def main(cfg: DictConfig):
         if i_iter % args.save_pred_every == 0:
             print('taking snapshot ...')
             trainer.save_model(osp.join(wandb.run.dir.replace('/wandb/', '/outputs/'), 'model_' + str(i_iter) + '.pth'), i_iter)
+
+
+    # Vessl
+    if vessl_on:
+        compress_folder(
+            src_folder = "wandb",
+            archive_name = "wandb")
+        shutil.copy(
+            src = f"./wandb.zip", 
+            dst = f"/output/wandb.zip")
+        compress_folder(
+            src_folder = "outputs",
+            archive_name = "outputs")
+        shutil.copy(
+            src = f"./outputs.zip", 
+            dst = f"/output/outputs.zip")
+        
+
 
 
 if __name__ == '__main__':
