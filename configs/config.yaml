@@ -52,6 +52,7 @@ ref_layer2: relu5_4
 ref_weight1: 0.33
 ref_weight2: 1.0
 ref_norm: false
+# restore_from: "checkpoints/model_100000.pth"
 restore_from: ~
 restore_teacher_from: "outputs/entire-run4-sc50/files/model_100000.pth"
 save_pred_every: 5000

@@ -6,7 +6,7 @@ Licensed under the CC BY-NC-SA 4.0 license (https://creativecommons.org/licenses
 import copy
 import glob
 import os
-os.environ["CUDA_VISIBLE_DEVICES"]= "1"
+os.environ["CUDA_VISIBLE_DEVICES"]= "0"
 
 import os.path as osp
 import shutil
@@ -144,8 +144,8 @@ def main(cfg: DictConfig):
         # can be used for tracking purposes but for final numbers please use the script in the evaluation folder
         # if i_iter % 500 == 0 and args.dataset == 'CUB':
         #     trainer.log_nmi(train_dataset, test_dataset, i_iter)
-        # if (i_iter % 5000 == 0 or i_iter == 1000) and i_iter > 0 and args.dataset in ['PP', 'DF']:
-        #     trainer.log_ari(testloader, i_iter)
+        if (i_iter % 5000 == 0 or i_iter == 1000) and i_iter > 0 and args.dataset in ['PP', 'DF']:
+            trainer.log_ari(testloader, i_iter)
 
         if i_iter >= args.num_steps - 1:
             print('save model ...')
