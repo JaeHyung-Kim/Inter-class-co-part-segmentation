@@ -16,7 +16,7 @@ PRETRAINED_MODEL = {
 }
 
 
-def model_generator(args, add_bg_mask=True):
+def model_generator(args, target_class=None, add_bg_mask=True):
     add_bg_mask = int(add_bg_mask)
     restore_from = args.restore_from
     # create network
@@ -41,6 +41,13 @@ def model_generator(args, add_bg_mask=True):
             restore_from = PRETRAINED_MODEL['resnet-50-caffe']
     else:
         print('Model "{}" not exist!'.format(args.model))
+    
+    if target_class is 'cat':
+        restore_from = args.restore_from_cat
+    elif target_class is 'dog':
+        restore_from = args.restore_from_dog
+    elif target_class is 'sheep':
+        restore_from = args.restore_from_sheep
 
     # load pretrained parameters
     if restore_from != 'None':

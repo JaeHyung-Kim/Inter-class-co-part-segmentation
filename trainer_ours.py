@@ -294,7 +294,10 @@ class Trainer(nn.Module):
                 for j in range(4):
                     seg_count[sample_idx, i-1, j-1] = torch.sum(preds[sample_idx, mask_copart] == j)
         
-        highest_iou_copart = torch.argmax(seg_count, dim=-1) # (B, 16)
+        highest_iou_copart = torch.argmax(seg_count, dim=-1) # (NS, 16)
+        
+        copart_npy = highest_iou_copart.cpu().numpy()
+        np.save(f'copart_iou{self.args.pascal_class[0]}.npy', copart_npy)
 
         copart_pairs = list(combinations(highest_iou_copart, 2))
         ari_list = []

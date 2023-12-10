@@ -26,7 +26,7 @@ lambda_sc: 5
 layer_len: -1
 learning_rate: 1e-05
 learning_rate_w: 0.01
-model: DeepLab101_2branch
+model: DeepLab50_2branch
 model_type: new
 momentum: 0.9
 no_sal_masking: false
@@ -37,7 +37,7 @@ num_parts: 4
 num_steps: 200000
 num_workers: 8
 power: 0.9
-pascal_class: ["dog", "sheep", "cat"]
+pascal_class: ["sheep"] # ["dog", "sheep", "cat"]
 random_mirror: false
 random_scale: false
 random_scale_high: 2.0
@@ -49,7 +49,7 @@ ref_layer2: relu5_4
 ref_weight1: 0.33
 ref_weight2: 1.0
 ref_norm: false
-restore_from: "checkpoints/model_100000.pth"
+restore_from: "checkpoints/model_sheep_100000.pth"
 save_pred_every: 5000
 self_ref_coord: false
 single_class: ~
