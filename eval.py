@@ -6,7 +6,7 @@ Licensed under the CC BY-NC-SA 4.0 license (https://creativecommons.org/licenses
 import copy
 import glob
 import os
-os.environ["CUDA_VISIBLE_DEVICES"]= "0"
+os.environ["CUDA_VISIBLE_DEVICES"]= "1"
 
 import os.path as osp
 import shutil
@@ -34,11 +34,14 @@ resource.setrlimit(resource.RLIMIT_NOFILE, (4096, rlimit[1]))
 
 @hydra.main(config_path="configs", config_name="config.yaml")
 def main(cfg: DictConfig):
+
     print(os.getcwd())
     cfg = dict(cfg)
     if cfg['dataset_name'] is not None:
         cfg['dataset'] = cfg['dataset_name']
-    wandb.init(project='unsup-parts')
+    wandb.init(
+        project='unsup-parts',
+        name="evaluation")
     wandb.config.update(cfg)
     args = wandb.config
     cudnn.enabled = True
@@ -68,33 +71,12 @@ def main(cfg: DictConfig):
     shutil.copytree('utils', code_path + '/utils', ignore=shutil.ignore_patterns('*.pyc', '__pycache__'))
     Path(osp.join(wandb.run.dir.replace('/wandb/', '/outputs/'), 'files')).mkdir(parents=True, exist_ok=True)
 
-    if args.dataset == 'CUB':
-        from datasets import cub
-        args.split = 'train'
-        train_dataset = cub.CUBDataset(args)
-        args_test = SimpleNamespace(**copy.deepcopy(dict(args)))
-        args_test.split = 'test'
-        test_dataset = cub.CUBDataset(args_test)
-
-    elif args.dataset == 'DF':
-        from datasets import deepfashion
-        args.split = 'train'
-        train_dataset = deepfashion.DFDataset(args)
-        args_test = SimpleNamespace(**copy.deepcopy(dict(args)))
-        args_test.split = 'test'
-        test_dataset = deepfashion.DFDataset(args_test)
-
-    elif args.dataset == 'PP':
-        from datasets import pascal_parts
-        args.split = 'train'
-        # train_dataset = pascal_parts.PPDataset(args)
-        args_test = SimpleNamespace(**copy.deepcopy(dict(args)))
-        args_test.split = 'test'
-        test_dataset = pascal_parts.PPDataset(args_test)
-
-    else:
-        print(f'Invalid dataset {args.dataset}')
-        sys.exit()
+    from datasets import pascal_parts
+    args.split = 'train'
+    # train_dataset = pascal_parts.PPDataset(args)
+    args_test = SimpleNamespace(**copy.deepcopy(dict(args)))
+    args_test.split = 'test'
+    test_dataset = pascal_parts.PPDataset(args_test)
 
     testloader = DataLoader(
         LitDataset(test_dataset),
