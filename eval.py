@@ -87,7 +87,7 @@ def main(cfg: DictConfig):
     elif args.dataset == 'PP':
         from datasets import pascal_parts
         args.split = 'train'
-        train_dataset = pascal_parts.PPDataset(args)
+        # train_dataset = pascal_parts.PPDataset(args)
         args_test = SimpleNamespace(**copy.deepcopy(dict(args)))
         args_test.split = 'test'
         test_dataset = pascal_parts.PPDataset(args_test)
@@ -111,16 +111,8 @@ def main(cfg: DictConfig):
     # Put ckpt_path 'checkpoints/model_100000.pth' in args.restore_from
     from trainer_ours import Trainer
     trainer = Trainer(args)
-
-    for eval_iter in range(1):
-
-        _, test_batch = testloader_iter.__next__()
-    
-        # can be used for tracking purposes but for final numbers please use the script in the evaluation folder
-        # trainer.log_nmi(train_dataset, test_dataset, i_iter)
-        trainer.log_consistency(testloader, eval_iter)
-        trainer.log_ari(testloader, eval_iter)
-
+    trainer.log_ari(testloader, 1)
+    trainer.log_consistency(testloader, 1)
 
 
             
