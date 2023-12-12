@@ -6,7 +6,7 @@ Licensed under the CC BY-NC-SA 4.0 license (https://creativecommons.org/licenses
 import copy
 import glob
 import os
-os.environ["CUDA_VISIBLE_DEVICES"]= "1"
+os.environ["CUDA_VISIBLE_DEVICES"]= "0"
 
 import os.path as osp
 import shutil
@@ -94,7 +94,7 @@ def main(cfg: DictConfig):
     from trainer_ours import Trainer
     trainer = Trainer(args)
     trainer.log_ari(testloader, 1)
-    trainer.log_consistency(testloader, 1)
+    trainer.save_consistency_data(testloader, 1)
 
 
             

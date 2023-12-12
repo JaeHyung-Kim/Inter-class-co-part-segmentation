@@ -263,7 +263,7 @@ class Trainer(nn.Module):
             'optimizer_state_dict': self.optimizer_seg.state_dict(),
             }, path)
     
-    def log_consistency(self, testloader, i_iter):
+    def save_consistency_data(self, testloader, i_iter):
         self.model.eval()
         gts = None
         preds = None
@@ -294,32 +294,15 @@ class Trainer(nn.Module):
                 for j in range(4):
                     seg_count[sample_idx, i-1, j-1] = torch.sum(preds[sample_idx, mask_copart] == j)
         
-        highest_iou_copart = torch.argmax(seg_count, dim=-1) # (NS, 16)
+        copart_pred_max, copart_pred_idx = torch.max(seg_count, dim=-1) # (NS, 16)
+        copart_valid_mask = torch.where(copart_pred_max==0, 0, 1)
+        # TODO: delete non-existent copart w/ mask
         
-        copart_npy = highest_iou_copart.cpu().numpy()
-        np.save(f'copart_iou{self.args.pascal_class[0]}.npy', copart_npy)
-
-        copart_pairs = list(combinations(highest_iou_copart, 2))
-        ari_list = []
-        nmi_list = []
-        pair_indices = np.arange(len(copart_pairs))
-        random.shuffle(pair_indices)
-        for pair_idx in pair_indices[:10000]:
-            pair = copart_pairs[pair_idx]
-            pair_ari = adjusted_rand_score_overflow(pair[0], pair[1])
-            pair_nmi = normalized_mutual_info_score(pair[0], pair[1])
-            ari_list.append(pair_ari)
-            nmi_list.append(pair_nmi)
-        
-        ari_list = np.array(ari_list)
-        nmi_list = np.array(nmi_list)
-        
-        ari = np.average(ari_list)
-        nmi = np.average(nmi_list)
-
-        print(f"co-part ARI: {ari * 100: .2f}, co-part NMI: {nmi * 100: .2f}")
-        wandb.log({'data/co-part_nmi': nmi * 100}, step=i_iter)
-        wandb.log({'data/co-part_ari': ari * 100}, step=i_iter)
+        copart_pred_idx_npy = copart_pred_idx.cpu().numpy()
+        copart_valid_mask_npy = copart_valid_mask.cpu().numpy()
+        np.save(f'copart_pred_{self.args.pascal_class[0]}.npy', copart_pred_idx_npy)
+        np.save(f'copart_mask_{self.args.pascal_class[0]}.npy', copart_valid_mask_npy)
+        print("copart result saved")
 
     def log_ari(self, testloader, i_iter):
         self.model.eval()
