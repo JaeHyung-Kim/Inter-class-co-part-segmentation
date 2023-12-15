@@ -12,7 +12,7 @@ old/
 *.pyc
 /data
 /data/
-/output/
+/outputs/
 /slurm/
 /logs/
 /dist/

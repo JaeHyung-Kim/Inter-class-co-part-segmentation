@@ -30,38 +30,47 @@ data
 
 ### Training:
 
-#### To train a baseline Unsup-parts: 
-1. Set the `pascal_class` to `["${class_you_want}"].`
-2. Start training with the following command.
+This project uses wandb. **Please make sure to associate wandb to your account before the training.** Otherwise, you will not be able to run any script.
 ```shell
-python train.py
+wandb login
+
+# Type your login key after.
+```
+
+
+#### To train a baseline Unsup-parts: 
+1. Start training with the following command. `'dog'`, `'cat'`, `'sheep'` are available.
+```shell
+python train.py pascal_class="['dog']"
 ```
 Checkpoints and training log will be created under `outputs` and `wandb` folders each.
 
 #### To train a teacher network:
-1. Change the `model` to `DeepLab101_2branch` from `DeepLab50_2branch` in `config/config.yaml`.
-2. Set the `pascal_class` to `["dog", "cat", "sheep"]` in `config/config.yaml`.
-3. Start training with the following command.
+1. Start training with the following command. Only for the teacher model, we use `lambda_sc` to `50` and ResNet101. This command will use the entire classes.
 ```shell
-python train.py
+python train.py lambda_sc=50 model=DeepLab101_2branch pascal_class="['dog', 'cat', 'sheep']"
 ```
 
 #### To train a student network:
-1. Set the `model` to `DeepLab50_2branch` in `config/config.yaml`.
-2. Set the `restore_teacher_from` to `${your_teacher_checkpoint}.pth"`.
-3. Set the `pascal_class` to `["${class_you_want}"]`.
-4. Start training with the following command.
+1. Start training with the following command. `'dog'`, `'cat'`, `'sheep'` are available. Pretrained teacher can be associated using `checkpoints/outputs/teacher/files/model_100000.pth`.
 ```shell
-python train_distill.py use_teacher_scheduling=True
+python train_distill.py pascal_class="['dog']" use_teacher_scheduling=True restore_teacher_from="${path_to_your_teacher_checkpoint}.pth"
 ```
 
 ### Evaluation:
-1. Set the `model` to `DeepLab50_2branch` or `DeepLab101_2branch` in `config/config.yaml` by the model you want to evaluate.
-2. Set the `restore_from` to `${checkpoint_to_eval}.pth"`.
-3. Set the `pascal_class` to `["${class_you_want}"]`.
-3. Run `eval.py` to evaluate the intra-class consistency. This will generate `copart_pred_{self.args.pascal_class[0]}.npy`
-4. Once you've evaluated all ["dog", "cat", "sheep"] classes, run `overall_consistency` to evaluate inter-class consistency.
+1. Select `DeepLab50_2branch` or `DeepLab101_2branch` by the model you want to evaluate in `model=`.
+2. Select checkpoint you want in `restore_from=`.
+3. Select class you want to evaluate.
+3. Run `eval.py` to evaluate the intra-class consistency. This will generate `copart_pred_${class}.npy`
+```shell
+python eval.py pascal_class="['dog']" restore_from="${path_to_your_teacher_checkpoint}.pth" model="${resnet50_or_101}$
+```
 
+4. Once you've evaluated all ["dog", "cat", "sheep"] classes, run `overall_consistency` to evaluate inter-class consistency.
+```shell
+python overall_consistency.py
+```
 
 ### Pretrained weights:
-TODO
+
+Pretrained weights can be downloaded from [here](https://drive.google.com/file/d/1Kz8zkpnkzKTqv1iD9nhVZcp073xloZ-1/view?usp=sharing). Please make sure to associate them using `restore_teacher_from=` when distillation training and `restore_from=` when evaluation.
