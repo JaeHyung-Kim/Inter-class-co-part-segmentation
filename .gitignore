@@ -203,3 +203,5 @@ dmypy.json
  */**/*.dylib*
  test/data/legacy_serialized.pt
  *~
+
+_copart/*

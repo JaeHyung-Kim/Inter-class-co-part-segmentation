@@ -190,6 +190,12 @@ class TrainerDistill(nn.Module):
         teacher_pred_softmax = torch.nn.functional.softmax(teacher_pred, dim=1)
         loss_distill = torch.nn.functional.cross_entropy(pred, teacher_pred_softmax)
         loss_distill_value += self.args.lambda_distill * loss_distill.data.cpu().numpy()
+        if self.args.use_teacher_scheduling:
+            if current_step > self.args.teacher_scheduling_ratio * self.args.num_steps:
+                loss_distill = torch.tensor([0.], device=loss_distill.device)
+                # Hmm... I think we need to monitor this.
+                # loss_distill_value = 0
+
         
         # raise NotImplementedError("Stop")
 
@@ -210,21 +216,23 @@ class TrainerDistill(nn.Module):
             # visualize loss curves
             self.viz.vis_losses(current_step,
                                 [loss_eqv_value,
-                                 loss_sc_value, loss_rgb_value, loss_contrastive_value, loss_distill_value],
-                                ['loss_eqv', 'loss_sc', 'loss_rgb', 'loss_contrastive', 'loss_distill'])
+                                 loss_sc_value, loss_rgb_value, loss_contrastive_value, loss_distill_value, self.args.lambda_distill * loss_distill.item()],
+                                ['loss_eqv', 'loss_sc', 'loss_rgb', 'loss_contrastive', 'loss_distill', 'loss_distill_effective'])
             print('exp = {}'.format(osp.join(self.args.snapshot_dir, wandb.run.name)))
             print(('iter = {:8d}/{:8d}, ' +
                    'loss_eqv = {:.3f}, ' +
                    'loss_sc = {:.3f}, ' +
                    'loss_rgb = {:.3f}, ' +
                    'loss_contrastive = {:.3f}, ' +
-                   'loss_distill = {:.3f}')
+                   'loss_distill = {:.3f}, ' +
+                   'loss_distill_effective = {:.3f}')
                   .format(current_step, self.args.num_steps,
                           loss_eqv_value,
                           loss_sc_value,
                           loss_rgb_value,
                           loss_contrastive_value,
-                          loss_distill_value))
+                          loss_distill_value,
+                          self.args.lambda_distill * loss_distill.item()))
 
     def visualize(self, setting, current_step, batch):
 
