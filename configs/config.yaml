@@ -4,7 +4,7 @@ celeba_th: 0.3
 center_crop: false
 clip_gradients: 5
 dataset: PP
-dataset_name: ~
+dataset_name: PP
 dataset_root: "data/"
 detach_k: false
 eqv_border_padding: false
@@ -23,7 +23,6 @@ lambda_eqv_bg: 0
 lambda_rgb: 3e1
 lambda_variance: 0
 lambda_sc: 5
-# lambda_sc: 50
 lambda_distill: 1e4
 layer_len: -1
 learning_rate: 1e-05
@@ -37,7 +36,6 @@ num_classes: 25
 num_part_names: 4
 num_parts: 4
 num_steps: 100000
-# num_steps: 200000
 num_workers: 8
 power: 0.9
 pascal_class: ["dog"]
@@ -52,9 +50,8 @@ ref_layer2: relu5_4
 ref_weight1: 0.33
 ref_weight2: 1.0
 ref_norm: false
-# restore_from: "checkpoints/model_100000.pth"
 restore_from: ~
-restore_teacher_from: "outputs/entire-run4-sc50/files/model_100000.pth"
+restore_teacher_from: ~
 use_teacher_scheduling: True
 teacher_scheduling_ratio: 0.1
 save_pred_every: 5000
