@@ -1,4 +1,6 @@
-## Unsupervised Part Discovery from Contrastive Reconstruction
+## Unsupervised inter-class co-part segmentation
+
+based on Unsupervised Part Discovery from Contrastive Reconstruction
 #### Subhabrata Choudhury, Iro Laina, Christian Rupprecht, Andrea Vedaldi
 ### [![ProjectPage](https://img.shields.io/badge/-Project%20Page-magenta.svg?style=for-the-badge&color=white&labelColor=magenta)](https://www.robots.ox.ac.uk/~vgg/research/unsup-parts/) [![Conference](https://img.shields.io/badge/NeurIPS-2021-purple.svg?style=for-the-badge&color=f1e3ff&labelColor=purple)](https://nips.cc/Conferences/2021/Schedule?showEvent=26254)    [![arXiv](https://img.shields.io/badge/arXiv-2111.06349-b31b1b.svg?style=for-the-badge)](https://arxiv.org/abs/2111.06349)
 
